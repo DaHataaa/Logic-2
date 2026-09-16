@@ -1,0 +1,15 @@
+{
+  "background": "#0F0F3F",
+  "grid": "#3F3F6F",
+  "signal_on": "#1b90f5",
+  "arrow": "#fAdA84",
+  "getter": "#FFAf55",
+  "bridge": "#6043Da",
+  "peg": "#60D34a",
+  "not": "#ef0195",
+  "or": "#ef0195",
+  "and": "#ef0195",
+  "xor": "#ef0195",
+  "power": "#FF7740",
+  "author": "Danila Khatuncev"
+}

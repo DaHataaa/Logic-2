@@ -1,0 +1,15 @@
+{
+  "background": "#2A7A5A",
+  "grid": "#0F4F2F",
+  "signal_on": "#D3C07A",
+  "arrow": "#3CF67F",
+  "getter": "#3CF27C",
+  "bridge": "#3CD3CC",
+  "peg": "#3CAFFF",
+  "not": "#EB52FF",
+  "or": "#EB52FF",
+  "and": "#EB52FF",
+  "xor": "#EB52FF",
+  "power": "#FF5F00",
+  "author": "Vitaly Vyunychenko"
+}

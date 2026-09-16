@@ -1,0 +1,15 @@
+{
+  "background": "#F2F2F2",
+  "grid": "#555555",
+  "signal_on": "#ffb6ab",
+  "arrow": "#373b35",
+  "getter": "#373b35",
+  "bridge": "#4F5B9A",
+  "peg": "#222e6d",
+  "not": "#659a4f",
+  "or": "#4d8237",
+  "and": "#356a1f",
+  "xor": "#1d5207",
+  "power": "#D64433",
+  "author": "Matvey Loivsky"
+}

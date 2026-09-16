@@ -1,0 +1,92 @@
+.button {
+    -fx-background-color: #5522FF;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 15;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+    -fx-min-width: 250;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+}
+
+.button:hover {
+    -fx-background-color: #FFAA55;
+    -fx-text-fill: #FFFFFF;
+}
+
+.button:pressed {
+    -fx-background-color: #FF2200;
+    -fx-text-fill: #FFFFFF;
+}
+
+.map-row {
+    -fx-background-color: #BB22FF;
+    -fx-background-radius: 5;
+    -fx-padding: 8 15;
+    -fx-min-height: 50;
+    -fx-pref-height: 50;
+}
+
+.map-row .map-name {
+    -fx-font-size: 24px;
+    -fx-fill: #FFFFFF;
+}
+
+.map-row-hover {
+    -fx-background-color: #5522FF;
+}
+
+.empty-text {
+    -fx-fill: #303030;
+    -fx-font-size: 24px;
+    -fx-font-style: italic;
+}
+
+.menu-title {
+    -fx-fill: #303030;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+.icon-button {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 10;
+    -fx-background-radius: 3;
+    -fx-cursor: hand;
+    -fx-min-width: 50;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+}
+
+.icon-button:hover {
+    -fx-background-color: #FF2200;
+    -fx-text-fill: #FFFFFF;
+}
+
+.icon-button:pressed {
+    -fx-background-color: #FF2200;
+    -fx-text-fill: #FFFFFF;
+}
+
+.map-scroll-pane {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.map-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.dialog-pane {
+    -fx-background-color: #FFFFFF;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #FFAA55;
+}

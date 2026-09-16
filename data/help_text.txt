@@ -1,0 +1,23 @@
+BLOCK PLACING:
+ 1-9          - Block choosing
+ WASD         - Block direction
+ LMC          - Place chosen block
+ R            - Delete block
+
+NAVIGATION
+ RMC+drag     - Moving
+ MouseWheel   - Zoom
+ T            - Layer Up
+ G            - Layer Down
+
+SELECTING:
+ E+drag       - Select area
+ C            - Copy selected area
+ V            - Paste selected area
+ X            - Cut selected area
+ R            - Clear selected area
+ D            - Deselect
+
+MAP SAVING
+ Ctrl+S       - Save current map if exists
+ Ctrl+Shift+S - Save current map as a new one
