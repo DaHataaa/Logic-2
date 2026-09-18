@@ -18,6 +18,11 @@ SELECTING:
  R            - Clear selected area
  D            - Deselect
 
+KEYBOARD ONLY:
+ Arrows       - Mooving the cursor
+ -/+ keys     - Zoom
+ F            - Place chosen blook
+
 MAP SAVING
  Ctrl+S       - Save current map if exists
  Ctrl+Shift+S - Save current map as a new one

@@ -7,10 +7,10 @@ public class CameraFollower {
 
     // Сглаживание (0..1): меньше — плавнее, больше — резче
     public static final double SMOOTHING_KEYBOARD = 0.08;
-    public static final double SMOOTHING_MOUSE    = 0.16;   // в 2 раза резче
+    public static final double SMOOTHING_MOUSE    = 0.10*0;   // в 2 раза резче
 
     // Максимальная скорость камеры (пикселей мира в секунду)
-    private static final double MAX_SPEED = 900.0;
+    private static final double MAX_SPEED = 1000.0;
 
     private final Camera camera;
 

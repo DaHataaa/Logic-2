@@ -1,18 +1,24 @@
 package com.app.graphics;
 
+import com.app.Config;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SpriteLoader {
 
     public static Sprite loadSprite(String texpackName, String spriteName) {
-        String path = "data/texturepacks/" + texpackName + "/" + spriteName + ".png";
+        Path path = Config.getDataDir()
+                .resolve("texturepacks")
+                .resolve(texpackName)
+                .resolve(spriteName + ".png");
+
         try {
-            File file = new File(path);
+            File file = path.toFile();
             if (!file.exists()) {
                 System.err.println("Sprite not found: " + path);
                 return createPlaceholder(spriteName, 16);
@@ -34,7 +40,7 @@ public class SpriteLoader {
             return new Sprite(spriteName, pixels, width, height);
 
         } catch (Exception e) {
-            System.err.println("Failed to load sprite: " + path);
+            System.err.println("Failed to load sprite: " + path + " (" + e.getMessage() + ")");
             return createPlaceholder(spriteName, 16);
         }
     }

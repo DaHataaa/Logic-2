@@ -13,6 +13,7 @@ import com.app.graphics.GridRenderer;
 import com.app.graphics.SpriteManager;
 import com.app.graphics.ColorConfig;
 import com.app.ui.BlockPalette;
+import com.app.ui.HelpDialog;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
@@ -64,12 +65,14 @@ public class MainState implements State {
     private int keyboardCursorX = 0;
     private int keyboardCursorY = 0;
 
-    // Защита от двойного срабатывания F (KEY_PRESSED + KEY_RELEASED)
+    // Защита от двойного срабатывания F
     private boolean fHandledOnPress = false;
 
-    // ===== Для расчёта deltaSeconds в update() =====
+    // Для расчёта deltaSeconds в update()
     private long lastFrameNanos = 0;
-    // =============================================
+
+    // Защита от двойной установки фильтра клавиатуры
+    private boolean filterInstalled = false;
 
     public MainState() {
         this(null);
@@ -119,11 +122,11 @@ public class MainState implements State {
         palette.setCurrentSpeed(simulationEngine.getSpeed());
         palette.updateSimulationStatus(simulationEngine.isRunning());
 
-        // ===== Фокус: канвас получает клавиатуру =====
+        // Фокус: канвас получает клавиатуру
         renderer.getCanvas().setFocusTraversable(true);
         renderer.getCanvas().setOnMousePressed(e -> renderer.getCanvas().requestFocus());
 
-        // ===== Фильтр клавиатуры на сцене: перехватываем стрелки/F ДО слайдера =====
+        // Фильтр клавиатуры на сцене
         root.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
                 installKeyboardFilter(newScene);
@@ -139,7 +142,6 @@ public class MainState implements State {
                 renderer.getCanvas().requestFocus();
             }
         });
-        // =============================================
 
         simulationEngine.start();
         initDeleteTimer();
@@ -147,6 +149,9 @@ public class MainState implements State {
 
     // ===== Фильтр клавиатуры =====
     private void installKeyboardFilter(Scene scene) {
+        if (filterInstalled) return;
+        filterInstalled = true;
+
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getTarget() instanceof TextInputControl) return;
 
@@ -163,16 +168,11 @@ public class MainState implements State {
             }
 
             // ===== + / - : зум с клавиатуры =====
-            // =  → зум +
-            // Numpad + → зум +
-            // -  → зум -
-            // Numpad - → зум -
             if (code == KeyCode.EQUALS || code == KeyCode.ADD
                     || code == KeyCode.MINUS || code == KeyCode.SUBTRACT) {
 
                 boolean zoomIn = code == KeyCode.EQUALS || code == KeyCode.ADD;
 
-                // Точка зума: клавиатурный курсор → мышь → центр
                 double zx, zy;
                 if (keyboardCursorActive) {
                     zx = camera.worldToScreenX((keyboardCursorX + 0.5) * camera.getBaseCellSize());
@@ -306,7 +306,6 @@ public class MainState implements State {
             renderer.render();
         }
     }
-    // ========================================================
 
     private void initDeleteTimer() {
         deleteTimer = new AnimationTimer() {
@@ -510,6 +509,11 @@ public class MainState implements State {
     public void enter() {
         System.out.println("Entering MainState" + (currentMapName != null ? " - " + currentMapName : ""));
         nextState = this;
+
+        if (root.getScene() != null) {
+            installKeyboardFilter(root.getScene());
+        }
+
         palette.updateLayer(world.getCurrentLayer());
         renderer.render();
         javafx.application.Platform.runLater(() -> renderer.getCanvas().requestFocus());
@@ -537,10 +541,8 @@ public class MainState implements State {
             if (deltaSeconds > 0.1) deltaSeconds = 0.1;
         }
         lastFrameNanos = now;
-        // ================================
 
         // ===== Слежение камеры =====
-        // Приоритет: клавиатурный курсор. Если его нет — мышь (внутри канваса).
         if (keyboardCursorActive) {
             double cursorScreenX = camera.worldToScreenX(
                     (keyboardCursorX + 0.5) * camera.getBaseCellSize()
@@ -560,8 +562,6 @@ public class MainState implements State {
             double mouseCanvasX = 0;
             double mouseCanvasY = 0;
 
-            // Мышь считается «внутри канваса», если она не над палитрой
-            // и не панорамируется (panning — ручное управление камерой)
             if (!panning && !isMouseOverPalette(lastSceneMouseX, lastSceneMouseY)) {
                 Point2D canvasCoords = getCanvasCoordinates(lastSceneMouseX, lastSceneMouseY);
                 mouseCanvasX = canvasCoords.getX();
@@ -581,7 +581,6 @@ public class MainState implements State {
                     CameraFollower.SMOOTHING_MOUSE
             );
         }
-        // ==================================================
 
         renderer.render();
 
@@ -646,7 +645,7 @@ public class MainState implements State {
             }
         }
 
-        // 3) Клавиатурный курсор — поверх всего
+        // 3) Клавиатурный курсор
         if (keyboardCursorActive) {
             double screenX = camera.worldToScreenX(keyboardCursorX * camera.getBaseCellSize());
             double screenY = camera.worldToScreenY(keyboardCursorY * camera.getBaseCellSize());
@@ -660,11 +659,16 @@ public class MainState implements State {
 
     @Override
     public void handleKeyPressed(KeyEvent event) {
-        // Стрелки и F сюда не дойдут — их съел EventFilter.
         switch (event.getCode()) {
             case ESCAPE:
                 nextState = new MenuState();
                 break;
+
+            case H:
+                HelpDialog.show();
+                javafx.application.Platform.runLater(() -> renderer.getCanvas().requestFocus());
+                break;
+
             case SPACE:
                 if (simulationEngine.isRunning()) {
                     simulationEngine.pause();
@@ -674,6 +678,7 @@ public class MainState implements State {
                     palette.updateSimulationStatus(true);
                 }
                 break;
+
             case E:
                 if (!selecting && !previewMode) {
                     selecting = true;
@@ -689,20 +694,22 @@ public class MainState implements State {
                     selection.startSelection(selectionStartX, selectionStartY, world.getCurrentLayer());
                 }
                 break;
+
             case T:
                 world.nextLayer();
                 palette.updateLayer(world.getCurrentLayer());
                 renderer.render();
                 break;
+
             case G:
                 world.previousLayer();
                 palette.updateLayer(world.getCurrentLayer());
                 renderer.render();
                 break;
+
             case R:
                 if (!selecting && !previewMode && !panning) {
                     if (keyboardCursorActive) {
-                        // Приоритет: удаляем блок в клетке клавиатурного курсора
                         removeBlockAtCell(keyboardCursorX, keyboardCursorY);
                     } else if (selection.hasSelection()) {
                         selection.deleteSelected(world, world.getCurrentLayer());
@@ -717,6 +724,7 @@ public class MainState implements State {
                     }
                 }
                 break;
+
             case W: palette.setDirection(Direction.UP); break;
             case A: palette.setDirection(Direction.LEFT); break;
             case S: palette.setDirection(Direction.DOWN); break;
@@ -738,6 +746,7 @@ public class MainState implements State {
                     System.out.println("Cut: selection removed, preview mode activated");
                 }
                 break;
+
             case C:
                 if (selection.hasSelection() && !previewMode && !selecting) {
                     previewMode = true;
@@ -745,6 +754,7 @@ public class MainState implements State {
                     System.out.println("Copy: preview mode activated");
                 }
                 break;
+
             case V:
                 if (previewMode && selection.hasSelection()) {
                     int px, py;
@@ -762,6 +772,7 @@ public class MainState implements State {
                     System.out.println("Paste done at (" + px + ", " + py + ")");
                 }
                 break;
+
             case DIGIT1: palette.setSelectedIndex(0); break;
             case DIGIT2: palette.setSelectedIndex(1); break;
             case DIGIT3: palette.setSelectedIndex(2); break;
@@ -821,10 +832,9 @@ public class MainState implements State {
         lastSceneMouseX = event.getSceneX();
         lastSceneMouseY = event.getSceneY();
 
-        // Любое нажатие мышью сбрасывает клавиатурный курсор
         if (keyboardCursorActive) {
             keyboardCursorActive = false;
-            cameraFollower.reset(); // чтобы не «дёрнуло» из-за смены цели
+            cameraFollower.reset();
             renderer.render();
         }
 

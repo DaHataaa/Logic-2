@@ -4,6 +4,7 @@ import com.app.Config;
 import com.app.core.MapManager;
 import com.app.graphics.SpriteManager;
 import com.app.graphics.ColorConfig;
+import com.app.ui.HelpDialog;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -62,11 +63,12 @@ public class MenuState implements State {
         texpacksBtn.getStyleClass().add("button");
         texpacksBtn.setOnAction(e -> openTexpacks());
 
-        Button HelpBtn = new Button("❓ HELP");
-        HelpBtn.getStyleClass().add("button");
-        HelpBtn.setOnAction(e -> openHelp());
+        // Кнопка HELP
+        Button helpBtn = new Button("❓ HELP");
+        helpBtn.getStyleClass().add("button");
+        helpBtn.setOnAction(e -> HelpDialog.show());
 
-        // Контейнер для списка карт - ВАЖНО: инициализируем ДО использования
+        // Контейнер для списка карт
         mapsContainer = new VBox(8);
         mapsContainer.setAlignment(Pos.TOP_CENTER);
 
@@ -76,72 +78,14 @@ public class MenuState implements State {
         scrollPane.setPrefWidth(500);
         scrollPane.setPrefHeight(850);
 
-        // Добавляем все элементы - проверяем что никто не null
-        centerPanel.getChildren().addAll(title, mapsText, scrollPane, newMapBtn, texpacksBtn, HelpBtn);
+        // Добавляем все элементы
+        centerPanel.getChildren().addAll(
+                title, mapsText, scrollPane,
+                newMapBtn, texpacksBtn, helpBtn
+        );
         root.setCenter(centerPanel);
 
         refreshMapsList();
-    }
-
-    private void openHelp() {
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                javafx.scene.control.Alert.AlertType.INFORMATION
-        );
-        alert.setTitle("Help");
-        alert.setHeaderText("Game Manual");
-
-        javafx.scene.control.TextArea textArea = new javafx.scene.control.TextArea();
-        textArea.setEditable(false);
-        textArea.setWrapText(true);
-        textArea.setStyle(
-                "-fx-font-family: 'Monospaced', 'Consolas', 'Courier New', monospace;" +
-                        "-fx-font-size: 18px;" +
-                        "-fx-control-inner-background: " + colors.getBackground() + ";" +
-                        "-fx-text-fill: " + colors.getGrid() + ";"
-        );
-
-        try {
-            java.nio.file.Path helpPath = java.nio.file.Paths.get("data/help_text.txt");
-
-            if (java.nio.file.Files.exists(helpPath)) {
-                String content = new String(java.nio.file.Files.readAllBytes(helpPath));
-                textArea.setText(content);
-            } else {
-                textArea.setText(
-                        "File: data/help_text.txt\n\n" +
-                                "Please create this file with:\n" +
-                                "  - Keyboard controls\n" +
-                                "  - Game rules\n" +
-                                "  - Tips and tricks"
-                );
-            }
-
-            textArea.setPrefHeight(700);
-            textArea.setPrefWidth(800);
-
-            javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(textArea);
-            scrollPane.setFitToWidth(true);
-            scrollPane.setPrefHeight(700);
-            scrollPane.setPrefWidth(800);
-
-            alert.getDialogPane().setContent(scrollPane);
-            alert.getDialogPane().setPrefSize(800, 700);
-
-        } catch (java.io.IOException e) {
-            textArea.setText(
-                    "Error: " + e.getMessage()
-            );
-            alert.getDialogPane().setContent(textArea);
-            System.err.println("Failed to read help file: " + e.getMessage());
-        }
-
-        // Стилизуем диалог
-        alert.getDialogPane().setStyle("-fx-background-color: " + colors.getBackground() + ";");
-        alert.getDialogPane().lookup(".header-panel").setStyle(
-                "-fx-background-color: " + colors.getSignalOn() + ";"
-        );
-
-        alert.showAndWait();
     }
 
     private void refreshMapsList() {
@@ -168,7 +112,7 @@ public class MenuState implements State {
         row.setAlignment(Pos.CENTER_LEFT);
         row.getStyleClass().add("map-row");
         row.setMaxWidth(500);
-        row.setPrefWidth(50);
+        row.setPrefWidth(500);
         row.setStyle("-fx-background-color: " + colors.getBridge() + ";");
 
         Text nameLabel = new Text(mapName);
@@ -194,8 +138,6 @@ public class MenuState implements State {
 
         buttonsBox.getChildren().addAll(playBtn, renameBtn, deleteBtn);
 
-
-
         row.setOnMouseEntered(e -> {
             row.setStyle("-fx-background-color: " + colors.getSignalOn() + ";");
             buttonsBox.setVisible(true);
@@ -207,7 +149,6 @@ public class MenuState implements State {
             buttonsBox.setVisible(false);
             buttonsBox.setManaged(false);
         });
-
 
         row.getChildren().addAll(nameLabel, buttonsBox);
         HBox.setHgrow(buttonsBox, javafx.scene.layout.Priority.ALWAYS);
@@ -292,6 +233,8 @@ public class MenuState implements State {
     public void handleKeyPressed(KeyEvent event) {
         if (event.getCode() == KeyCode.ESCAPE) {
             System.exit(0);
+        } else if (event.getCode() == KeyCode.H) {
+            HelpDialog.show();
         }
     }
 

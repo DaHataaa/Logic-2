@@ -1,5 +1,6 @@
 package com.app.graphics;
 
+import com.app.Config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
@@ -48,16 +49,22 @@ public class ColorConfig {
     private String power = "#FF6600";
 
     public static ColorConfig load(String texpackName) {
-        String path = "data/texturepacks/" + texpackName + "/colors.json";
+        Path path = Config.getDataDir()
+                .resolve("texturepacks")
+                .resolve(texpackName)
+                .resolve("colors.json");
+
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         try {
-            Path filePath = Paths.get(path);
-            if (!Files.exists(filePath)) {
+            if (!Files.exists(path)) {
                 return new ColorConfig();
             }
-            try (FileReader reader = new FileReader(path)) {
+            try (FileReader reader = new FileReader(path.toFile())) {
                 ColorConfig config = gson.fromJson(reader, ColorConfig.class);
+                if (config == null) {
+                    return new ColorConfig();
+                }
                 if (config.getAuthor() == null || config.getAuthor().isEmpty()) {
                     config.author = "Unknown";
                 }
@@ -69,15 +76,19 @@ public class ColorConfig {
     }
 
     public void save(String texpackName) {
-        String path = "data/texturepacks/" + texpackName + "/colors.json";
+        Path path = Config.getDataDir()
+                .resolve("texturepacks")
+                .resolve(texpackName)
+                .resolve("colors.json");
+
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         try {
-            Path parent = Paths.get(path).getParent();
+            Path parent = path.getParent();
             if (parent != null && !Files.exists(parent)) {
                 Files.createDirectories(parent);
             }
-            try (FileWriter writer = new FileWriter(path)) {
+            try (FileWriter writer = new FileWriter(path.toFile())) {
                 gson.toJson(this, writer);
             }
         } catch (IOException e) {

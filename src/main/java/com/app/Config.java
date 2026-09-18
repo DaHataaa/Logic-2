@@ -8,10 +8,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Config {
     private static Config instance;
-    private static final String CONFIG_PATH = "data/config.json";
+
+    // ===== Базовая директория и data =====
+    private static Path baseDir;
+    private static Path dataDir;
+
     private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .create();
@@ -55,7 +62,7 @@ public class Config {
 
     // Текущий текстурпак
     @SerializedName("current_texturepack")
-    private String currentTexturepack = "classic";
+    private String currentTexturepack = "Classic";
 
     private Config() {}
 
@@ -67,8 +74,60 @@ public class Config {
         return instance;
     }
 
+    // ===== Определение базовой папки =====
+    /**
+     * Возвращает папку, относительно которой лежит data/.
+     * - Запуск из IDE: корень проекта (там где pom.xml)
+     * - Запуск из jar: папка, где лежит jar
+     */
+    public static Path getBaseDir() {
+        if (baseDir == null) {
+            baseDir = resolveBaseDir();
+        }
+        return baseDir;
+    }
+
+    /**
+     * Возвращает путь к папке data (baseDir/data).
+     */
+    public static Path getDataDir() {
+        if (dataDir == null) {
+            dataDir = getBaseDir().resolve("data");
+        }
+        return dataDir;
+    }
+
+    private static Path resolveBaseDir() {
+        try {
+            Path loc = Paths.get(Config.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI());
+
+            if (Files.isRegularFile(loc)) {
+                // Запуск из jar → папка рядом с jar
+                return loc.getParent();
+            } else {
+                // Запуск из IDE → target/classes, поднимаемся до корня проекта
+                Path p = loc;
+                while (p != null) {
+                    if (Files.exists(p.resolve("pom.xml"))
+                            || Files.exists(p.resolve("build.gradle"))
+                            || Files.exists(p.resolve("data"))) {
+                        return p;
+                    }
+                    p = p.getParent();
+                }
+                // Fallback — рабочая директория
+                return Paths.get(".").toAbsolutePath().normalize();
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to resolve base dir: " + e.getMessage());
+            return Paths.get(".").toAbsolutePath().normalize();
+        }
+    }
+
+    // ===== Загрузка / сохранение =====
     public void load() {
-        File file = new File(CONFIG_PATH);
+        File file = getDataDir().resolve("config.json").toFile();
         if (file.exists()) {
             try (FileReader reader = new FileReader(file)) {
                 Config loaded = GSON.fromJson(reader, Config.class);
@@ -97,7 +156,7 @@ public class Config {
 
     public void save() {
         try {
-            File file = new File(CONFIG_PATH);
+            File file = getDataDir().resolve("config.json").toFile();
             file.getParentFile().mkdirs();
             try (FileWriter writer = new FileWriter(file)) {
                 GSON.toJson(this, writer);

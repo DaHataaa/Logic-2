@@ -2,11 +2,13 @@ package com.app;
 
 import com.app.graphics.SpriteManager;
 import com.app.graphics.ColorConfig;
-import java.io.*;
-import java.nio.file.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class StyleManager {
-    private static final String CSS_PATH = "data/styles.css";
+    private static final Path CSS_PATH = Config.getDataDir().resolve("styles.css");
 
     private static final String CSS_TEMPLATE =
             ".button {\n" +
@@ -104,7 +106,7 @@ public class StyleManager {
 
     public static void generateCSS() {
         try {
-            Files.createDirectories(Paths.get("data"));
+            Files.createDirectories(Config.getDataDir());
 
             ColorConfig colors = SpriteManager.getInstance().getColors();
 
@@ -142,8 +144,8 @@ public class StyleManager {
                     dialogBg, dialogHeader
             );
 
-            Files.write(Paths.get(CSS_PATH), css.getBytes());
-            System.out.println("CSS generated successfully");
+            Files.write(CSS_PATH, css.getBytes());
+            System.out.println("CSS generated successfully at: " + CSS_PATH.toAbsolutePath());
 
         } catch (IOException e) {
             System.err.println("Failed to generate CSS: " + e.getMessage());

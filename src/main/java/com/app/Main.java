@@ -30,7 +30,7 @@ public class Main extends Application {
         scene = new Scene(currentRoot, config.getWindowWidth(), config.getWindowHeight());
 
         // Загружаем сгенерированный CSS
-        File cssFile = new File("data/styles.css");
+        File cssFile = Config.getDataDir().resolve("styles.css").toFile();
         if (cssFile.exists()) {
             scene.getStylesheets().add(cssFile.toURI().toString());
             System.out.println("CSS loaded from: " + cssFile.getAbsolutePath());

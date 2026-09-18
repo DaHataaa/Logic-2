@@ -1,26 +1,28 @@
 package com.app.core;
 
+import com.app.Config;
+
 import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapManager {
-    private static final String MAPS_DIR = "data/maps";
+    private static final Path MAPS_DIR = Config.getDataDir().resolve("maps");
 
     static {
         try {
-            Files.createDirectories(Paths.get(MAPS_DIR));
-            System.out.println("Maps directory: " + Paths.get(MAPS_DIR).toAbsolutePath());
+            Files.createDirectories(MAPS_DIR);
+            System.out.println("Maps directory: " + MAPS_DIR.toAbsolutePath());
         } catch (IOException e) {
             System.err.println("Failed to create maps directory: " + e.getMessage());
         }
     }
 
     public static boolean saveMap(String name, World world) {
-        String filename = MAPS_DIR + "/" + sanitizeFilename(name) + ".logicmap";
+        Path file = MAPS_DIR.resolve(sanitizeFilename(name) + ".logicmap");
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(file.toFile()))) {
             int size = world.getSize();
             int layers = world.getLayers();
 
@@ -47,7 +49,7 @@ public class MapManager {
                 writer.println("---");
             }
 
-            System.out.println("Map saved: " + filename + " (" + (size * size * layers) + " cells)");
+            System.out.println("Map saved: " + file + " (" + (size * size * layers) + " cells)");
             return true;
 
         } catch (IOException e) {
@@ -57,17 +59,16 @@ public class MapManager {
     }
 
     public static boolean loadMap(String name, World world) {
-        String filename = MAPS_DIR + "/" + sanitizeFilename(name) + ".logicmap";
-        File file = new File(filename);
+        Path file = MAPS_DIR.resolve(sanitizeFilename(name) + ".logicmap");
 
-        if (!file.exists()) {
-            System.err.println("Map not found: " + filename);
+        if (!Files.exists(file)) {
+            System.err.println("Map not found: " + file);
             return false;
         }
 
-        System.out.println("Loading map from: " + filename);
+        System.out.println("Loading map from: " + file);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file.toFile()))) {
             String line;
             int size = -1;
             int layers = -1;
@@ -100,14 +101,13 @@ public class MapManager {
                         System.out.println("Finished loading layer " + currentLayer);
                     } else {
                         readingData = true;
-                        currentLayer = 0; // ВАЖНО: начинаем с layer 0
+                        currentLayer = 0;
                         currentY = 0;
                     }
                     continue;
                 }
                 if (line.startsWith("#layer")) {
                     readingData = true;
-                    // Извлекаем номер слоя из строки вида "#layer 0"
                     String[] parts = line.split(" ");
                     if (parts.length > 1) {
                         currentLayer = Integer.parseInt(parts[1]);
@@ -148,10 +148,9 @@ public class MapManager {
                 }
             }
 
-            System.out.println("Map loaded successfully: " + filename);
+            System.out.println("Map loaded successfully: " + file);
             System.out.println("Total blocks loaded: " + blocksLoaded);
 
-            // Проверяем загруженные блоки
             String testBlock = world.getBlock(0, 115, 120);
             System.out.println("Test block at (0,115,120): " + testBlock);
 
@@ -167,7 +166,10 @@ public class MapManager {
         List<String> maps = new ArrayList<>();
 
         try {
-            Files.list(Paths.get(MAPS_DIR))
+            if (!Files.exists(MAPS_DIR)) {
+                Files.createDirectories(MAPS_DIR);
+            }
+            Files.list(MAPS_DIR)
                     .filter(p -> p.toString().endsWith(".logicmap"))
                     .forEach(p -> {
                         String name = p.getFileName().toString();
@@ -182,9 +184,9 @@ public class MapManager {
     }
 
     public static boolean deleteMap(String name) {
-        String filename = MAPS_DIR + "/" + sanitizeFilename(name) + ".logicmap";
+        Path file = MAPS_DIR.resolve(sanitizeFilename(name) + ".logicmap");
         try {
-            return Files.deleteIfExists(Paths.get(filename));
+            return Files.deleteIfExists(file);
         } catch (IOException e) {
             System.err.println("Failed to delete map: " + e.getMessage());
             return false;
@@ -192,11 +194,11 @@ public class MapManager {
     }
 
     public static boolean renameMap(String oldName, String newName) {
-        String oldFilename = MAPS_DIR + "/" + sanitizeFilename(oldName) + ".logicmap";
-        String newFilename = MAPS_DIR + "/" + sanitizeFilename(newName) + ".logicmap";
+        Path oldFile = MAPS_DIR.resolve(sanitizeFilename(oldName) + ".logicmap");
+        Path newFile = MAPS_DIR.resolve(sanitizeFilename(newName) + ".logicmap");
 
         try {
-            Files.move(Paths.get(oldFilename), Paths.get(newFilename), StandardCopyOption.REPLACE_EXISTING);
+            Files.move(oldFile, newFile, StandardCopyOption.REPLACE_EXISTING);
             System.out.println("Map renamed: " + oldName + " -> " + newName);
             return true;
         } catch (IOException e) {
@@ -206,8 +208,8 @@ public class MapManager {
     }
 
     public static boolean mapExists(String name) {
-        String filename = MAPS_DIR + "/" + sanitizeFilename(name) + ".logicmap";
-        return Files.exists(Paths.get(filename));
+        Path file = MAPS_DIR.resolve(sanitizeFilename(name) + ".logicmap");
+        return Files.exists(file);
     }
 
     private static String sanitizeFilename(String name) {

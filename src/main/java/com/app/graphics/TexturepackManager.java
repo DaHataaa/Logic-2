@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TexturepackManager {
-    private static final String TEXTUREPACKS_DIR = "data/texturepacks";
+    private static final Path TEXTUREPACKS_DIR = Config.getDataDir().resolve("texturepacks");
+
     private String currentTexturepack;
     private ColorConfig colors;
 
@@ -16,8 +17,17 @@ public class TexturepackManager {
         loadTexturepack(Config.getInstance().getCurrentTexturepack());
     }
 
-
     public void loadTexturepack(String name) {
+        // Если папки нет — создаём, чтобы не падало при старте
+        Path packDir = TEXTUREPACKS_DIR.resolve(name);
+        if (!Files.exists(packDir)) {
+            try {
+                Files.createDirectories(packDir);
+            } catch (IOException e) {
+                System.err.println("Failed to create texpack dir: " + e.getMessage());
+            }
+        }
+
         this.currentTexturepack = name;
         this.colors = ColorConfig.load(name);
         Config.getInstance().setCurrentTexturepack(name);
@@ -27,13 +37,18 @@ public class TexturepackManager {
 
     public List<String> getAvailableTexturepacks() {
         List<String> texpacks = new ArrayList<>();
+
         try {
-            Files.list(Paths.get(TEXTUREPACKS_DIR))
+            if (!Files.exists(TEXTUREPACKS_DIR)) {
+                Files.createDirectories(TEXTUREPACKS_DIR);
+            }
+            Files.list(TEXTUREPACKS_DIR)
                     .filter(Files::isDirectory)
                     .forEach(p -> texpacks.add(p.getFileName().toString()));
         } catch (IOException e) {
             System.err.println("Failed to list texturepacks: " + e.getMessage());
         }
+
         return texpacks;
     }
 
@@ -46,6 +61,9 @@ public class TexturepackManager {
     }
 
     public String getSpritePath(String spriteName) {
-        return TEXTUREPACKS_DIR + "/" + currentTexturepack + "/" + spriteName + ".png";
+        return TEXTUREPACKS_DIR
+                .resolve(currentTexturepack)
+                .resolve(spriteName + ".png")
+                .toString();
     }
 }
