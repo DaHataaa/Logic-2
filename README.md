@@ -1,4 +1,4 @@
-### Logic 2
+### Logix
 **Простые правила. Бесконечные возможности.**
 
 <img width="1108" height="507" alt="image" src="https://github.com/user-attachments/assets/38a7112b-46ac-44e5-a78f-dbdec9988fda" /> <img width="1775" height="589" alt="image" src="https://github.com/user-attachments/assets/e55c4f01-cfd5-4540-8879-267c0c0c668c" />
